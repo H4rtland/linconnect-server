@@ -90,7 +90,7 @@ except IOError:
         "notify_start":1,
     }
     with open(conf_file, 'w') as text_file:
-        conf.write(conf_file)
+        conf.write(text_file)
 
 parser = ConfigParser.ConfigParser()
 parser.read(conf_file)
