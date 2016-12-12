@@ -79,14 +79,18 @@ try:
         print("Loading conf.ini")
 except IOError:
     print("Creating conf.ini")
+    conf = ConfigParser.ConfigParser()
+    conf["connection"] = {
+        "port":9090,
+        "enable_bonjour":1,
+    }
+    conf["other"] = {
+        "enable_instruction_webpage":1,
+        "notify_timeout":5000,
+        "notify_start":1,
+    }
     with open(conf_file, 'w') as text_file:
-        text_file.write("""[connection]
-port = 9090
-enable_bonjour = 1
-
-[other]
-enable_instruction_webpage = 1
-notify_timeout = 5000""")
+        conf.write(conf_file)
 
 parser = ConfigParser.ConfigParser()
 parser.read(conf_file)
@@ -96,7 +100,7 @@ del conf_file
 _service_name = platform.node()
 
 class Notification(object):
-    if parser.getboolean('other', 'enable_instruction_webpage') == 1:
+    if parser.getboolean('other', 'enable_instruction_webpage'):
         with open(os.path.join(script_dir, 'index.html'), 'rb') as f:
             _index_source = f.read()
 
@@ -168,7 +172,7 @@ def initialize_bonjour():
                                      callBack=register_callback)
     signal.signal(signal.SIGTERM, sigterm_handler)
     signal.signal(signal.SIGINT, sigterm_handler)
-    
+
     try:
         try:
             while True:
@@ -193,14 +197,15 @@ if not Notify.init("com.willhauck.linconnect"):
     raise ImportError("Error initializing libnotify")
 
 # Start Bonjour if desired
-if parser.getboolean('connection', 'enable_bonjour') == 1:
+if parser.getboolean('connection', 'enable_bonjour'):
     thr = threading.Thread(target=initialize_bonjour)
     thr.start()
 
-config_instructions = "Configuration instructions at http://localhost:" + parser.get('connection', 'port')
-print(config_instructions)
-notif = Notify.Notification.new("Notification server started (version " + version + ")", config_instructions, "info")
-notif.show()
+if parser.getboolean('other', 'notify_start'):
+    config_instructions = "Configuration instructions at http://localhost:" + parser.get('connection', 'port')
+    print(config_instructions)
+    notif = Notify.Notification.new("Notification server started (version " + version + ")", config_instructions, "info")
+    notif.show()
 
 cherrypy.server.socket_host = '0.0.0.0'
 cherrypy.server.socket_port = int(parser.get('connection', 'port'))
