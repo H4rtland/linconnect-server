@@ -79,16 +79,18 @@ try:
         print("Loading conf.ini")
 except IOError:
     print("Creating conf.ini")
+
     conf = ConfigParser.ConfigParser()
-    conf["connection"] = {
-        "port":9090,
-        "enable_bonjour":1,
-    }
-    conf["other"] = {
-        "enable_instruction_webpage":1,
-        "notify_timeout":5000,
-        "notify_start":1,
-    }
+
+    conf.add_section("connection")
+    conf.set("connection", "port", 9090)
+    conf.set("connection", "enable_bonjour", 1)
+
+    conf.add_section("other")
+    conf.set("other", "enable_instruction_webpage", 1)
+    conf.set("other", "notify_timeout", 5000)
+    conf.set("other", "notify_start", 1)
+
     with open(conf_file, 'w') as text_file:
         conf.write(text_file)
 
